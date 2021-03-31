@@ -1,3 +1,5 @@
+## Create a state file in an S3 bucket (remote) ##
+
 terraform {
     required_version = ">= 0.12"
     backend "s3" {
@@ -11,7 +13,23 @@ provider "aws" {
     region = "eu-west-2"
 }
 
-resource "aws_vpc" "myapp-vpc" {
+# Subnet, Internet GW and Route Table will be configured automatically if using the below AWS module code #
+module "vpc" {
+  source = "terraform-aws-modules/vpc/aws"
+
+  name = "${var.env_prefix}-vpc"
+  cidr = var.vpc_cidr_block
+
+  azs             = [var.avail_zone]
+  public_subnets  = [var.subnet_cidr_block]
+  public_subnet_tags = { Name = "${var.env_prefix}-subnet-1" }
+}
+  /*tags = {
+    name = "${var.env_prefix}-vpc"
+  }
+
+
+/* resource "aws_vpc" "myapp-vpc" {
     cidr_block = var.vpc_cidr_block
 
     tags = {
@@ -26,7 +44,7 @@ module "myapp-subnet" {
     env_prefix = var.env_prefix
     vpc_id = aws_vpc.myapp-vpc.id
     default_route_table_id = aws_vpc.myapp-vpc.default_route_table_id
-}
+}*/
 
 module "myapp-server" {
     source = "./modules/webserver"
